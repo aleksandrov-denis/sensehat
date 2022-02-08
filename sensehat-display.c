@@ -26,8 +26,21 @@
 #include <linux/property.h>
 #include "sensehat.h"
 
+/*GAMMA_SIZE -> Size for the gamma table, gamma table is used as input for LED
+matrix
+
+VMEM_SIZE -> Memory to be allocated in RAM for display process
+*/
+
 #define GAMMA_SIZE 32
 #define VMEM_SIZE 192
+
+/*Specifies pointer to driver to handle process,
+registers a miscellaneous device (as a placeholder for i2c device?),
+initializes mutex, this struct has a placeholder in memory for when it is ready to execute
+gamma table attribute,
+memory allocation attribute,
+register attribute*/
 
 struct sensehat_display {
 	struct platform_device *pdev;
@@ -38,9 +51,14 @@ struct sensehat_display {
 	u32 display_register;
 };
 
+/*Module has a boolean lowlight parameter with no permissions
+upon boot/module load*/
+
 static bool lowlight;
 module_param(lowlight, bool, 0);
 MODULE_PARM_DESC(lowlight, "Reduce LED matrix brightness to one third");
+
+/*Defines the default and lowlight states of the LED matrix*/
 
 static const u8 gamma_presets[][GAMMA_SIZE] = {
 	[GAMMA_DEFAULT] = {
@@ -56,6 +74,9 @@ static const u8 gamma_presets[][GAMMA_SIZE] = {
 		0x06, 0x07, 0x07, 0x08, 0x08, 0x09, 0x0A, 0x0A,
 	},
 };
+
+/*Makes a temp register map based on the new display specs and writes 
+the contents of temp in bulk to the sensehat(device)*/
 
 static void sensehat_update_display(struct sensehat_display *display)
 {
@@ -73,6 +94,9 @@ static void sensehat_update_display(struct sensehat_display *display)
 		dev_err(&display->pdev->dev,
 			"Update to 8x8 LED matrix display failed");
 }
+
+/*Offset file pointer by given offset value from whence,
+returns the offset pointer if it is in bounds of file memory*/
 
 static loff_t sensehat_display_llseek(struct file *filp, loff_t offset, int whence)
 {
@@ -97,6 +121,8 @@ static loff_t sensehat_display_llseek(struct file *filp, loff_t offset, int when
 	return base;
 }
 
+/*Read the current display configuration to file*/
+
 static ssize_t sensehat_display_read(struct file *filp, char __user *buf,
 				     size_t count, loff_t *f_pos)
 {
@@ -118,6 +144,8 @@ out:
 	mutex_unlock(&sensehat_display->rw_mtx);
 	return retval;
 }
+
+/*Write/set a new display configuration from file*/
 
 static ssize_t sensehat_display_write(struct file *filp, const char __user *buf,
 				      size_t count, loff_t *f_pos)

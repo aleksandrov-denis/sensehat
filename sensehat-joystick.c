@@ -19,6 +19,12 @@
 #include <linux/of_irq.h>
 #include <linux/property.h>
 
+/*Joystick encapsulation,
+pointer to the device,
+pointer where to put instruction,
+storing previous state in a long?,
+register for the object*/
+
 struct sensehat_joystick {
 	struct platform_device *pdev;
 	struct input_dev *keys_dev;
@@ -26,9 +32,13 @@ struct sensehat_joystick {
 	u32 joystick_register;
 };
 
+/*Map to the different instructions passed in from joystick*/
+
 static const unsigned int keymap[] = {
 	BTN_DPAD_DOWN, BTN_DPAD_RIGHT, BTN_DPAD_UP, BTN_SELECT, BTN_DPAD_LEFT,
 };
+
+/*Report on state of executed actions*/
 
 static irqreturn_t sensehat_joystick_report(int n, void *cookie)
 {
